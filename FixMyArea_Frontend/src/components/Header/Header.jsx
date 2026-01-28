@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import logo from "../../assets/images/logo.png";
+import Logo from "../../assets/images/Logo.png";
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { BiMenu } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
@@ -186,7 +186,7 @@ const Header = () => {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="logoo">
-              <img src={logo} alt="logo" />
+              <img src={Logo} alt="logo" />
             </div>
 
             {/* Navigation */}
