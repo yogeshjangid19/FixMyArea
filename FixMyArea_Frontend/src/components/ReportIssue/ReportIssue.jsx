@@ -49,7 +49,6 @@ const ReportIssue = () => {
       const response = await axios.post(`${API_BASE_URL}/issues`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
         },
       });
       alert('Issue reported successfully!');
