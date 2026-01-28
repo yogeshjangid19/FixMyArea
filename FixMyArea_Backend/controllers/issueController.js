@@ -11,8 +11,13 @@ const __dirname = path.dirname(__filename);
 export const createIssue = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+  console.log("Validation errors:", errors.array()); // <-- add this
+  return res.status(400).json({
+    message: "Validation failed",
+    errors: errors.array()
+  });
+}
+
 
   const { issueTitle, issueDescription, category, priority, address } = req.body;
   const userId = req.user.userId;
