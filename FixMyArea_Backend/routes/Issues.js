@@ -11,6 +11,7 @@ import { createIssueValidator } from '../validators/issueValidator.js';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
+ console.log("🚀 Issues Route Loaded - Multer before Validator");
 
 // Get __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
