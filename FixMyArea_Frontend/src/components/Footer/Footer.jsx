@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import logo from '../../assets/images/logo.png';
+import Logo from '../../assets/images/Logo.png';
 import { RiLinkedinFill } from 'react-icons/ri';
 import { AiFillYoutube, AiFillGithub, AiOutlineInstagram } from 'react-icons/ai';
 
@@ -84,7 +84,7 @@ const Footer = () => {
       <div className='container'>
         <div className="flex justify-between flex-col md:flex-row flex-wrap gap-[30px]">
           <div className='w-full md:w-2/5'>
-            <img src={logo} alt="Fix My Area Logo" />
+            <img src={Logo} alt="Fix My Area Logo" />
             <p className='text-[16px] leading-7 font-400 text-textColor mt-4'>
               Copyright &copy; {year} Fix My Area. All rights reserved.
             </p>
