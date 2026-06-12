@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6.0-jammy
+    container_name: fma_mongodb_dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - fma-mongo-data-dev:/data/db
+
+  backend:
+    image: node:20-alpine
+    container_name: fma_backend_dev
+    working_dir: /usr/src/app
+    command: sh -c "npm install && npm run dev"
+    volumes:
+      - ./Backend:/usr/src/app
+    ports:
+      - "4009:4009"
+    environment:
+      - PORT=4009
+      - MONGO_URI=mongodb://mongo:27017/fixmyarea_dev
+      - JWT_SECRET=dev_jwt_secret_key_12345
+      - DB_NAME=fixmyarea_dev
+      - NODE_ENV=development
+    depends_on:
+      - mongo
+
+  frontend:
+    image: node:20-alpine
+    container_name: fma_frontend_dev
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host"
+    volumes:
+      - ./Frontend:/app
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:4009/v1/api
+    depends_on:
+      - backend
+
+volumes:
+  fma-mongo-data-dev:

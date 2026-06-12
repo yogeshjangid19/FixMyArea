@@ -1,61 +1,76 @@
 import express from 'express';
-import { 
-  createIssue, 
-  getIssues, 
+import { body } from 'express-validator';
+import {
+  createIssue,
+  getIssues,
+  getPublicIssues,
+  getMyIssues,
+  getIssueById,
   updateIssueStatus,
-  getMyIssues
+  voteIssue,
+  addComment,
+  getStats,
+  deleteIssue,
 } from '../controllers/issueController.js';
-
-import authMiddleware from '../middleware/authMiddleware.js';
-import { createIssueValidator } from '../validators/issueValidator.js';
-import multer from 'multer';
-import path from 'path';
-import { fileURLToPath } from 'url';
- console.log("🚀 Issues Route Loaded - Multer before Validator");
-
-// Get __dirname in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Multer storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../uploads/issues'));
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, `${uniqueSuffix}-${file.originalname}`);
-  },
-});
-
-// File filter for images
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) cb(null, true);
-  else cb(new Error('Only images are allowed'), false);
-};
-
-const upload = multer({ storage, fileFilter });
+import { verifyToken, requireRole, optionalVerifyToken } from '../middleware/authMiddleware.js';
+import { upload } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
-// ================= ROUTES =================
+const issueValidation = [
+  body('issueTitle')
+    .trim()
+    .escape()
+    .notEmpty()
+    .withMessage('Title is required')
+    .isLength({ max: 100 })
+    .withMessage('Title cannot exceed 100 characters'),
+  body('issueDescription')
+    .trim()
+    .escape()
+    .notEmpty()
+    .withMessage('Description is required')
+    .isLength({ max: 1000 })
+    .withMessage('Description cannot exceed 1000 characters'),
+  body('category')
+    .trim()
+    .escape()
+    .notEmpty()
+    .withMessage('Category is required')
+    .isIn([
+      'Potholes',
+      'Broken Street Light',
+      'Sewage Overflow',
+      'Illegal Waste Dumping',
+      'Damaged Traffic Signals',
+      'Unclean Public Toilets',
+      'Water Supply',
+      'Tree / Branch Fall',
+      'Other',
+    ])
+    .withMessage('Invalid category'),
+  body('address').trim().escape().notEmpty().withMessage('Address is required'),
+  body('landmark').optional().trim().escape(),
+];
 
-// Citizen creates an issue
-router.post(
-  '/',
-  authMiddleware(['citizen']),
-  upload.single('photo'),
-  ...createIssueValidator,
-  createIssue
-);
+// Public
+router.get('/public', verifyToken, requireRole('municipal', 'admin'), getPublicIssues);
+router.get('/stats', optionalVerifyToken, getStats);
 
-// Municipal gets all issues
-router.get('/', authMiddleware(['municipal']), getIssues);
+// Citizen
+router.post('/', verifyToken, upload.single('photo'), issueValidation, createIssue);
+router.get('/my', verifyToken, getMyIssues);
+router.post('/:id/vote', verifyToken, voteIssue);
+router.post('/:id/comment', verifyToken, addComment);
 
-// Municipal updates issue status
-router.put('/:id/status', authMiddleware(['municipal']), updateIssueStatus);
+// Municipal + Admin
+router.get('/', verifyToken, requireRole('municipal', 'admin'), getIssues);
+router.put('/:id/status', verifyToken, requireRole('municipal', 'admin'), updateIssueStatus);
 
-// Citizen gets only their own issues
-router.get('/my', authMiddleware(['citizen']), getMyIssues);
+// Shared authenticated
+router.get('/:id', verifyToken, getIssueById);
+
+// Admin only
+router.delete('/:id', verifyToken, requireRole('admin'), deleteIssue);
 
 export default router;

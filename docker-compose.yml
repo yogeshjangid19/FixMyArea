@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6.0-jammy
+    container_name: fma_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - fma-mongo-data:/data/db
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: fma_backend
+    restart: unless-stopped
+    ports:
+      - "4009:4009"
+    environment:
+      - PORT=4009
+      - MONGO_URI=mongodb://mongo:27017/fixmyarea
+      - JWT_SECRET=change_this_to_something_secure_in_production
+      - DB_NAME=fixmyarea
+      - NODE_ENV=production
+    depends_on:
+      - mongo
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://localhost:4009/v1/api
+    container_name: fma_frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  fma-mongo-data:
