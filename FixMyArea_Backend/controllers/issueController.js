@@ -5,8 +5,12 @@ import Issue from '../models/Issue.js';
 // CREATE ISSUE
 export const createIssue = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty())
+  if (!errors.isEmpty()) {
+    console.error('Validation failed on createIssue:');
+    console.error('Errors:', JSON.stringify(errors.array(), null, 2));
+    console.error('req.body:', req.body);
     return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
+  }
 
   const { issueTitle, issueDescription, category, priority, address, landmark } = req.body;
   const userId = req.user.userId;

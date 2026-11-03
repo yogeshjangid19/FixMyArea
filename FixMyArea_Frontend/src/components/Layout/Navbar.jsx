@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { MapPin, Menu, X, LogOut, User, ChevronDown, Zap } from 'lucide-react';
+import { MapPin, Menu, X, LogOut, User, ChevronDown, Zap, Plus, FileCode2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Navbar() {
@@ -34,7 +34,7 @@ export default function Navbar() {
 
   const navLinks = [
     { label: 'Home', to: '/' },
-    ...(user?.role === 'municipal' || user?.role === 'admin' ? [{ label: 'Issues', to: '/issues' }] : []),
+    ...(user?.role === 'municipal' || user?.role === 'admin' ? [{ label: 'Issue Feed', to: '/issues' }] : []),
     ...(user?.role === 'citizen' ? [{ label: 'Report Issue', to: '/report' }] : []),
     ...(user ? [{ label: 'Dashboard', to: getDashboardPath() }] : []),
   ];
@@ -43,35 +43,42 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'glass border-b border-white/10 shadow-lg shadow-black/20'
+          ? 'bg-slate-950/80 backdrop-blur-xl border-b border-white/10 shadow-xl shadow-black/30'
           : 'bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #6366f1, #a78bfa)' }}>
-              <MapPin size={16} className="text-white" />
+          <Link to="/" className="flex items-center gap-3 group">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-105 group-hover:shadow-indigo-500/40 transition-all duration-300"
+              style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+            >
+              <MapPin size={18} className="text-white" />
             </div>
-            <span className="font-display font-bold text-lg text-white tracking-tight">
-              Fix<span className="gradient-text">MyArea</span>
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="font-display font-extrabold text-xl text-white tracking-tight">
+                FixMy<span className="gradient-text">Area</span>
+              </span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                v2.0
+              </span>
+            </div>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* Desktop Nav Links */}
+          <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white/[0.03] border border-white/10">
             {navLinks.map(link => (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 ${
                   isActive(link.to)
-                    ? 'text-white bg-white/10 border border-white/15'
-                    : 'text-slate-400 hover:text-white hover:bg-white/6'
+                    ? 'text-white bg-indigo-600/30 border border-indigo-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
               >
                 {link.label}
@@ -79,81 +86,155 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Right side */}
+          {/* Right Action side */}
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <div className="relative">
                 <button
                   onClick={() => setDropOpen(!dropOpen)}
-                  className="flex items-center gap-2.5 glass px-3 py-2 rounded-xl hover:bg-white/10 transition-all duration-200"
+                  className="flex items-center gap-3 glass px-3.5 py-2 rounded-2xl hover:bg-white/10 hover:border-indigo-500/30 transition-all duration-200 border border-white/10"
                 >
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white"
-                    style={{ background: 'linear-gradient(135deg, #6366f1, #a78bfa)' }}>
+                  <div
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white shadow-sm"
+                    style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                  >
                     {user.name?.[0]?.toUpperCase()}
                   </div>
                   <div className="text-left">
-                    <div className="text-xs font-semibold text-white leading-tight">{user.name}</div>
-                    <div className="text-[10px] text-slate-400 capitalize">{user.role}</div>
+                    <div className="text-xs font-bold text-white leading-tight truncate max-w-[110px]">
+                      {user.name}
+                    </div>
+                    <div className="text-[10px] text-indigo-300 font-semibold uppercase tracking-wider capitalize">
+                      {user.role}
+                    </div>
                   </div>
-                  <ChevronDown size={14} className={`text-slate-400 transition-transform ${dropOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    size={14}
+                    className={`text-slate-400 transition-transform duration-200 ${dropOpen ? 'rotate-180' : ''}`}
+                  />
                 </button>
 
                 {dropOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-48 glass-strong rounded-xl py-1 shadow-xl z-50">
+                  <div className="absolute right-0 top-full mt-2 w-52 glass-strong rounded-2xl p-2 shadow-2xl border border-white/15 z-50 animate-fadeIn">
+                    <div className="px-3 py-2 border-b border-white/10 mb-1">
+                      <p className="text-xs font-semibold text-white truncate">{user.name}</p>
+                      <p className="text-[10px] text-slate-400 truncate">{user.email}</p>
+                    </div>
+
+                    <Link
+                      to={getDashboardPath()}
+                      onClick={() => setDropOpen(false)}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                      <User size={14} className="text-indigo-400" />
+                      <span>My Dashboard</span>
+                    </Link>
+
+                    {user.role === 'citizen' && (
+                      <Link
+                        to="/report"
+                        onClick={() => setDropOpen(false)}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+                      >
+                        <Plus size={14} className="text-emerald-400" />
+                        <span>Report Grievance</span>
+                      </Link>
+                    )}
+
+                    <hr className="border-white/10 my-1" />
+
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors">
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors font-medium"
+                    >
                       <LogOut size={14} />
-                      Log Out
+                      <span>Sign Out</span>
                     </button>
                   </div>
                 )}
               </div>
             ) : (
-              <>
-                <Link to="/auth" className="btn-ghost text-sm">Log In</Link>
-                <Link to="/auth?tab=register" className="btn-primary text-sm">
-                  <Zap size={14} />
-                  Get Started
+              <div className="flex items-center gap-2.5">
+                <Link
+                  to="/auth"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                >
+                  Sign In
                 </Link>
-              </>
+                <Link
+                  to="/auth?tab=register"
+                  className="btn-primary text-xs px-4 py-2 shadow-lg shadow-indigo-600/30"
+                >
+                  <Zap size={13} />
+                  <span>Get Started</span>
+                </Link>
+              </div>
             )}
           </div>
 
-          {/* Mobile toggle */}
+          {/* Mobile toggle button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden glass p-2 rounded-lg text-slate-400"
+            className="md:hidden glass p-2.5 rounded-xl text-slate-300 hover:text-white border border-white/10"
+            aria-label="Toggle Menu"
           >
-            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="md:hidden glass border-t border-white/10 px-4 py-4 space-y-2">
+        <div className="md:hidden glass-strong border-t border-white/10 px-5 py-5 space-y-3 animate-fadeIn">
           {navLinks.map(link => (
-            <Link key={link.to} to={link.to}
+            <Link
+              key={link.to}
+              to={link.to}
               onClick={() => setMobileOpen(false)}
-              className={`block px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                isActive(link.to) ? 'text-white bg-white/10' : 'text-slate-400 hover:text-white'
-              }`}>
+              className={`block px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
+                isActive(link.to)
+                  ? 'text-white bg-indigo-600/30 border border-indigo-500/40'
+                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
               {link.label}
             </Link>
           ))}
+
           <hr className="border-white/10" />
+
           {user ? (
-            <>
-              <button onClick={() => { handleLogout(); setMobileOpen(false); }}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-400">
-                <LogOut size={14} /> Log Out
+            <div className="space-y-2 pt-1">
+              <div className="px-3 py-2 text-xs text-slate-400">
+                Signed in as <strong className="text-white">{user.name}</strong> ({user.role})
+              </div>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setMobileOpen(false);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-red-400 bg-red-500/10 border border-red-500/20"
+              >
+                <LogOut size={15} />
+                <span>Sign Out</span>
               </button>
-            </>
+            </div>
           ) : (
-            <div className="flex gap-2 pt-2">
-              <Link to="/auth" onClick={() => setMobileOpen(false)} className="flex-1 btn-ghost justify-center">Log In</Link>
-              <Link to="/auth?tab=register" onClick={() => setMobileOpen(false)} className="flex-1 btn-primary justify-center">Sign Up</Link>
+            <div className="flex flex-col gap-2 pt-2">
+              <Link
+                to="/auth"
+                onClick={() => setMobileOpen(false)}
+                className="w-full btn-ghost justify-center py-3 text-sm text-center"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/auth?tab=register"
+                onClick={() => setMobileOpen(false)}
+                className="w-full btn-primary justify-center py-3 text-sm text-center shadow-lg shadow-indigo-600/30"
+              >
+                Create Account
+              </Link>
             </div>
           )}
         </div>

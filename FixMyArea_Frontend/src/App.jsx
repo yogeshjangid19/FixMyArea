@@ -1,6 +1,7 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Layout/Navbar';
+import Footer from './components/Layout/Footer';
 import Home from './pages/Home';
 import AuthPage from './pages/AuthPage';
 import ReportIssue from './pages/ReportIssue';
@@ -22,39 +23,45 @@ const ProtectedRoute = ({ children, roles }) => {
 };
 
 const AppInner = () => {
+  const location = useLocation();
+  const isAuthPage = location.pathname === '/auth';
+
   return (
-    <div className="page-bg min-h-screen">
+    <div className="page-bg min-h-screen flex flex-col justify-between">
       <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/issues" element={
-          <ProtectedRoute roles={['municipal', 'admin']}>
-            <IssueFeed />
-          </ProtectedRoute>
-        } />
-        <Route path="/report" element={
-          <ProtectedRoute roles={['citizen']}>
-            <ReportIssue />
-          </ProtectedRoute>
-        } />
-        <Route path="/dashboard/citizen" element={
-          <ProtectedRoute roles={['citizen']}>
-            <CitizenDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/dashboard/municipal" element={
-          <ProtectedRoute roles={['municipal']}>
-            <MunicipalDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/dashboard/admin" element={
-          <ProtectedRoute roles={['admin']}>
-            <AdminDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/issues" element={
+            <ProtectedRoute roles={['municipal', 'admin']}>
+              <IssueFeed />
+            </ProtectedRoute>
+          } />
+          <Route path="/report" element={
+            <ProtectedRoute roles={['citizen']}>
+              <ReportIssue />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/citizen" element={
+            <ProtectedRoute roles={['citizen']}>
+              <CitizenDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/municipal" element={
+            <ProtectedRoute roles={['municipal']}>
+              <MunicipalDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/admin" element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
+      {!isAuthPage && <Footer />}
     </div>
   );
 };

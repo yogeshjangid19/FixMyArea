@@ -1,9 +1,22 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { CATEGORIES, PRIORITIES, CATEGORY_ICONS } from '../utils/helpers';
-import { Upload, MapPin, Loader2, CheckCircle, X, Camera, Locate } from 'lucide-react';
+import {
+  Upload,
+  MapPin,
+  Loader2,
+  CheckCircle,
+  X,
+  Camera,
+  Locate,
+  ShieldCheck,
+  Sparkles,
+  AlertCircle,
+  ArrowRight,
+  Info,
+} from 'lucide-react';
 
 export default function ReportIssue() {
   const navigate = useNavigate();
@@ -37,13 +50,13 @@ export default function ReportIssue() {
           const data = await response.json();
           if (data && data.display_name) {
             setForm(f => ({ ...f, address: data.display_name }));
-            toast.success('Location detected!');
+            toast.success('Precise street address detected!');
           } else {
-            setForm(f => ({ ...f, address: `${latitude}, ${longitude}` }));
+            setForm(f => ({ ...f, address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}` }));
             toast.success('Coordinates detected!');
           }
         } catch {
-          setForm(f => ({ ...f, address: `${latitude}, ${longitude}` }));
+          setForm(f => ({ ...f, address: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}` }));
           toast.success('Coordinates detected!');
         } finally {
           setLocating(false);
@@ -65,7 +78,10 @@ export default function ReportIssue() {
   const handlePhoto = e => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return; }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be under 5MB');
+      return;
+    }
     setForm(f => ({ ...f, photo: file }));
     const reader = new FileReader();
     reader.onload = ev => setPreview(ev.target.result);
@@ -74,17 +90,29 @@ export default function ReportIssue() {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    if (!form.category) { toast.error('Please select a category'); return; }
+    if (!form.category) {
+      toast.error('Please select a category for your report');
+      return;
+    }
     setLoading(true);
     try {
       const fd = new FormData();
-      Object.entries(form).forEach(([k, v]) => { if (v && k !== 'photo') fd.append(k, v); });
+      Object.entries(form).forEach(([k, v]) => {
+        if (v && k !== 'photo') fd.append(k, v);
+      });
       if (form.photo) fd.append('photo', form.photo);
+
       await api.post('/issues', fd);
       setDone(true);
       toast.success('Issue reported successfully!');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to submit issue');
+      console.error('Issue submission error details:', err.response?.data);
+      const validationMsgs = err.response?.data?.errors?.map(e => e.msg).filter(Boolean);
+      const errorMsg =
+        (validationMsgs && validationMsgs.length > 0 ? validationMsgs.join(' • ') : null) ||
+        err.response?.data?.message ||
+        'Failed to submit issue';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -92,22 +120,48 @@ export default function ReportIssue() {
 
   if (done) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 pt-20">
-        <div className="orb w-[400px] h-[400px] bg-green-500 top-0 left-0" style={{ opacity: 0.08 }} />
-        <div className="glass-card p-12 text-center max-w-md w-full relative z-10">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-            style={{ background: 'linear-gradient(135deg, #34d399, #059669)' }}>
-            <CheckCircle size={40} className="text-white" />
+      <div className="min-h-screen flex items-center justify-center px-4 pt-20 pb-16">
+        <div className="pointer-events-none absolute w-[400px] h-[400px] bg-emerald-500/15 rounded-full blur-[140px] top-1/4 left-1/2 -translate-x-1/2" />
+        <div className="glass-strong p-8 sm:p-12 text-center max-w-lg w-full relative z-10 border border-white/15 rounded-3xl shadow-2xl">
+          <div
+            className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-500/30"
+            style={{ background: 'linear-gradient(135deg, #34d399, #059669)' }}
+          >
+            <CheckCircle size={44} className="text-white" />
           </div>
-          <h2 className="font-display text-3xl font-bold text-white mb-3">Issue Submitted!</h2>
-          <p className="text-slate-400 mb-8">
-            Your report has been received. Municipal authorities will review and take action.
+          <span className="badge badge-resolved mb-3">Ticket Dispatched</span>
+          <h2 className="font-display text-3xl font-extrabold text-white mb-3">
+            Grievance Submitted!
+          </h2>
+          <p className="text-slate-300 text-sm mb-8 leading-relaxed">
+            Your report has been logged and assigned to the municipal maintenance division. You can monitor live progress and official updates in your citizen dashboard.
           </p>
-          <div className="flex gap-3 justify-center">
-            <button onClick={() => { setDone(false); setForm({ issueTitle:'',issueDescription:'',category:'',priority:'medium',address:'',landmark:'',photo:null }); setPreview(null); }}
-              className="btn-ghost">Report Another</button>
-            <button onClick={() => navigate('/dashboard/citizen')} className="btn-primary">
-              View My Issues
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => {
+                setDone(false);
+                setForm({
+                  issueTitle: '',
+                  issueDescription: '',
+                  category: '',
+                  priority: 'medium',
+                  address: '',
+                  landmark: '',
+                  photo: null,
+                });
+                setPreview(null);
+              }}
+              className="btn-ghost text-sm py-3 justify-center"
+            >
+              Report Another Issue
+            </button>
+            <button
+              onClick={() => navigate('/dashboard/citizen')}
+              className="btn-primary text-sm py-3 justify-center flex items-center gap-2 shadow-lg shadow-indigo-600/30"
+            >
+              <span>Track on Dashboard</span>
+              <ArrowRight size={16} />
             </button>
           </div>
         </div>
@@ -116,40 +170,51 @@ export default function ReportIssue() {
   }
 
   return (
-    <div className="min-h-screen px-4 pt-24 pb-16">
-      <div className="orb w-[400px] h-[400px] bg-indigo-500 top-0 right-[-100px]" />
-      <div className="max-w-2xl mx-auto relative z-10">
+    <div className="min-h-screen px-4 pt-24 pb-20">
+      <div className="pointer-events-none absolute w-[450px] h-[450px] rounded-full bg-indigo-500/15 blur-[140px] top-0 right-[-100px]" />
+      <div className="pointer-events-none absolute w-[350px] h-[350px] rounded-full bg-purple-500/10 blur-[130px] bottom-10 left-[-100px]" />
+
+      <div className="max-w-3xl mx-auto relative z-10">
         {/* Header */}
-        <div className="mb-8">
-          <p className="text-indigo-400 text-sm font-semibold uppercase tracking-widest mb-2">Citizen Report</p>
-          <h1 className="font-display text-4xl font-bold text-white">Report an Issue</h1>
-          <p className="text-slate-400 mt-2">Submit infrastructure problems for your area</p>
+        <div className="mb-8 text-center sm:text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-3">
+            <Sparkles size={12} className="text-indigo-400" />
+            <span>Citizen Public Grievance Portal</span>
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Report a Civic Issue
+          </h1>
+          <p className="text-slate-400 mt-2 text-xs sm:text-sm max-w-xl">
+            Provide the details and a photograph of the infrastructure problem. Your ticket is routed straight to municipal field workers.
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="glass-card p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="glass-card p-6 sm:p-10 space-y-7 border border-white/10">
           {/* Category Grid */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-3">
-              Category <span className="text-red-400">*</span>
-            </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-xs sm:text-sm font-semibold text-slate-200">
+                1. Select Problem Category <span className="text-red-400">*</span>
+              </label>
+              {form.category && (
+                <span className="text-xs text-indigo-400 font-medium">Selected: {form.category}</span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               {CATEGORIES.map(cat => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setForm(f => ({ ...f, category: cat }))}
-                  className={`p-3 rounded-xl text-xs font-medium text-center transition-all duration-200 border ${
+                  className={`p-3.5 rounded-xl text-xs font-medium text-center transition-all duration-200 border flex flex-col items-center gap-1.5 ${
                     form.category === cat
-                      ? 'text-white border-indigo-500/50'
-                      : 'text-slate-400 hover:text-slate-200 border-white/10 hover:border-white/20'
+                      ? 'text-white border-indigo-500 bg-indigo-600/25 shadow-lg shadow-indigo-500/20 scale-[1.02]'
+                      : 'text-slate-400 hover:text-slate-200 border-white/10 hover:border-white/20 bg-white/[0.03]'
                   }`}
-                  style={form.category === cat
-                    ? { background: 'rgba(99,102,241,0.2)', borderColor: 'rgba(99,102,241,0.4)' }
-                    : { background: 'rgba(255,255,255,0.03)' }
-                  }
                 >
-                  <div className="text-xl mb-1">{CATEGORY_ICONS[cat]}</div>
-                  <div className="leading-tight">{cat}</div>
+                  <span className="text-2xl">{CATEGORY_ICONS[cat]}</span>
+                  <span className="leading-tight text-center font-medium">{cat}</span>
                 </button>
               ))}
             </div>
@@ -157,52 +222,83 @@ export default function ReportIssue() {
 
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Issue Title <span className="text-red-400">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs sm:text-sm font-semibold text-slate-200">
+                2. Issue Title <span className="text-red-400">*</span>
+              </label>
+              <span className="text-[11px] text-slate-500">{form.issueTitle.length}/100</span>
+            </div>
             <input
               name="issueTitle"
               value={form.issueTitle}
               onChange={handleChange}
+              maxLength={100}
               className="input-glass"
-              placeholder="e.g. Large pothole on main road near park"
+              placeholder="e.g. Deep pothole causing accidents near Metro Pillar 142"
               required
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Description <span className="text-red-400">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs sm:text-sm font-semibold text-slate-200">
+                3. Detailed Description <span className="text-red-400">*</span>
+              </label>
+              <span className="text-[11px] text-slate-500">{form.issueDescription.length}/1000</span>
+            </div>
             <textarea
               name="issueDescription"
               value={form.issueDescription}
               onChange={handleChange}
+              maxLength={1000}
               rows={4}
               className="input-glass resize-none"
-              placeholder="Describe the issue in detail — size, severity, how long it's been there..."
+              placeholder="Describe the problem — severity, approximate depth/length, how long it has been broken, or specific safety concerns..."
               required
             />
           </div>
 
           {/* Priority */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Priority Level</label>
-            <div className="flex gap-2">
+            <label className="block text-xs sm:text-sm font-semibold text-slate-200 mb-2">
+              4. Urgency / Priority Level
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {PRIORITIES.map(p => (
                 <button
                   key={p}
                   type="button"
                   onClick={() => setForm(f => ({ ...f, priority: p }))}
-                  className={`flex-1 py-2 rounded-lg text-xs font-semibold capitalize transition-all duration-200 border ${
-                    form.priority === p ? 'text-white' : 'text-slate-400 border-white/10'
+                  className={`py-2.5 px-3 rounded-xl text-xs font-bold capitalize transition-all border text-center ${
+                    form.priority === p ? 'shadow-md scale-[1.02]' : 'text-slate-400 border-white/10 bg-white/[0.03]'
                   }`}
                   style={form.priority === p ? {
-                    background: p === 'critical' ? 'rgba(239,68,68,0.25)' : p === 'high' ? 'rgba(251,146,60,0.25)' : p === 'medium' ? 'rgba(251,191,36,0.2)' : 'rgba(148,163,184,0.15)',
-                    borderColor: p === 'critical' ? 'rgba(239,68,68,0.5)' : p === 'high' ? 'rgba(251,146,60,0.5)' : p === 'medium' ? 'rgba(251,191,36,0.4)' : 'rgba(148,163,184,0.3)',
-                    color: p === 'critical' ? '#f87171' : p === 'high' ? '#fb923c' : p === 'medium' ? '#fbbf24' : '#94a3b8',
-                  } : { background: 'rgba(255,255,255,0.03)' }}
+                    background:
+                      p === 'critical'
+                        ? 'rgba(239,68,68,0.25)'
+                        : p === 'high'
+                        ? 'rgba(251,146,60,0.25)'
+                        : p === 'medium'
+                        ? 'rgba(251,191,36,0.2)'
+                        : 'rgba(148,163,184,0.15)',
+                    borderColor:
+                      p === 'critical'
+                        ? 'rgba(239,68,68,0.6)'
+                        : p === 'high'
+                        ? 'rgba(251,146,60,0.6)'
+                        : p === 'medium'
+                        ? 'rgba(251,191,36,0.5)'
+                        : 'rgba(148,163,184,0.4)',
+                    color:
+                      p === 'critical'
+                        ? '#f87171'
+                        : p === 'high'
+                        ? '#fb923c'
+                        : p === 'medium'
+                        ? '#fbbf24'
+                        : '#94a3b8',
+                  } : {}}
                 >
                   {p}
                 </button>
@@ -213,18 +309,18 @@ export default function ReportIssue() {
           {/* Location */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">
-                Address / Area <span className="text-red-400">*</span>
+              <label className="block text-xs sm:text-sm font-semibold text-slate-200 mb-2">
+                5. Location / Street Address <span className="text-red-400">*</span>
               </label>
               <div className="relative flex gap-2">
                 <div className="relative flex-1">
-                  <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                  <MapPin size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                   <input
                     name="address"
                     value={form.address}
                     onChange={handleChange}
-                    className="input-glass pl-9"
-                    placeholder="Street or area name"
+                    className="input-glass pl-9 text-xs sm:text-sm"
+                    placeholder="Enter street, cross road, or ward"
                     required
                   />
                 </div>
@@ -232,49 +328,61 @@ export default function ReportIssue() {
                   type="button"
                   onClick={handleGetCurrentLocation}
                   disabled={locating}
-                  className="px-3 rounded-xl border border-indigo-500/20 text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 hover:text-indigo-300 transition-all flex items-center justify-center shrink-0 disabled:opacity-30"
-                  title="Detect Current Location"
+                  className="px-3 rounded-xl border border-indigo-500/30 text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 hover:text-indigo-300 transition-all flex items-center justify-center shrink-0 disabled:opacity-30 shadow-sm"
+                  title="Detect GPS Location"
                 >
                   {locating ? <Loader2 size={16} className="animate-spin" /> : <Locate size={16} />}
                 </button>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Landmark (Optional)</label>
+              <label className="block text-xs sm:text-sm font-semibold text-slate-200 mb-2">
+                Landmark (Optional)
+              </label>
               <input
                 name="landmark"
                 value={form.landmark}
                 onChange={handleChange}
-                className="input-glass"
-                placeholder="Near bus stop, temple..."
+                className="input-glass text-xs sm:text-sm"
+                placeholder="Opposite bank, bus stop, temple..."
               />
             </div>
           </div>
 
           {/* Photo Upload */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Photo Evidence
+            <label className="block text-xs sm:text-sm font-semibold text-slate-200 mb-2">
+              6. Photographic Evidence (Recommended)
             </label>
             {preview ? (
-              <div className="relative">
-                <img src={preview} alt="Preview" className="w-full h-48 object-cover rounded-xl" />
-                <button type="button"
-                  onClick={() => { setPreview(null); setForm(f => ({ ...f, photo: null })); }}
-                  className="absolute top-2 right-2 w-8 h-8 glass rounded-full flex items-center justify-center text-white hover:bg-red-500/30">
-                  <X size={14} />
-                </button>
+              <div className="relative rounded-2xl overflow-hidden border border-white/20 bg-slate-900 group">
+                <img src={preview} alt="Evidence Preview" className="w-full h-56 object-cover" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreview(null);
+                      setForm(f => ({ ...f, photo: null }));
+                    }}
+                    className="px-4 py-2 rounded-xl bg-red-500/80 text-white text-xs font-semibold hover:bg-red-500 flex items-center gap-1.5 transition-all shadow-lg"
+                  >
+                    <X size={14} /> Remove Photo
+                  </button>
+                </div>
               </div>
             ) : (
               <label
                 htmlFor="photo-upload"
-                className="block w-full h-36 border-2 border-dashed border-white/15 rounded-xl cursor-pointer hover:border-indigo-500/40 transition-colors"
-                style={{ background: 'rgba(255,255,255,0.02)' }}
+                className="block w-full h-40 border-2 border-dashed border-white/15 rounded-2xl cursor-pointer hover:border-indigo-500/50 hover:bg-white/[0.04] transition-all bg-white/[0.02]"
               >
-                <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-500">
-                  <Camera size={28} />
-                  <p className="text-sm">Click to upload photo</p>
-                  <p className="text-xs">JPG, PNG or WebP — max 5MB</p>
+                <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-400">
+                  <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-indigo-400 shadow-inner">
+                    <Camera size={24} />
+                  </div>
+                  <p className="text-xs sm:text-sm font-medium text-slate-300">
+                    Click or drag & drop photo here
+                  </p>
+                  <p className="text-[11px] text-slate-500">Supports JPG, PNG, WEBP — up to 5MB</p>
                 </div>
                 <input
                   id="photo-upload"
@@ -287,10 +395,30 @@ export default function ReportIssue() {
             )}
           </div>
 
-          <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3.5 text-base">
-            {loading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
-            {loading ? 'Submitting Report…' : 'Submit Issue Report'}
-          </button>
+          {/* Submit Action */}
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full justify-center py-4 text-base shadow-xl shadow-indigo-600/30 hover:scale-[1.01] transition-transform"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>Transmitting to Municipal Action Portal…</span>
+                </>
+              ) : (
+                <>
+                  <Upload size={18} />
+                  <span>Submit Grievance to Municipal Portal</span>
+                </>
+              )}
+            </button>
+            <p className="text-center text-[11px] text-slate-500 mt-3 flex items-center justify-center gap-1.5">
+              <ShieldCheck size={13} className="text-indigo-400" />
+              <span>Complaints are authenticated via JWT & encrypted on MongoDB Atlas</span>
+            </p>
+          </div>
         </form>
       </div>
     </div>

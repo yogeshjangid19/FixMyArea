@@ -20,21 +20,18 @@ const router = express.Router();
 const issueValidation = [
   body('issueTitle')
     .trim()
-    .escape()
     .notEmpty()
     .withMessage('Title is required')
     .isLength({ max: 100 })
     .withMessage('Title cannot exceed 100 characters'),
   body('issueDescription')
     .trim()
-    .escape()
     .notEmpty()
     .withMessage('Description is required')
     .isLength({ max: 1000 })
     .withMessage('Description cannot exceed 1000 characters'),
   body('category')
     .trim()
-    .escape()
     .notEmpty()
     .withMessage('Category is required')
     .isIn([
@@ -49,8 +46,8 @@ const issueValidation = [
       'Other',
     ])
     .withMessage('Invalid category'),
-  body('address').trim().escape().notEmpty().withMessage('Address is required'),
-  body('landmark').optional().trim().escape(),
+  body('address').trim().notEmpty().withMessage('Address is required'),
+  body('landmark').optional().trim(),
 ];
 
 // Public
