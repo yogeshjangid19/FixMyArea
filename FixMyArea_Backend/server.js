@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import dotenvSafe from 'dotenv-safe';
+import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import authRoutes from './routes/Auth.js';
 import issueRoutes from './routes/Issues.js';
@@ -15,7 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // FixMyArea Server v2.0 - Cloudinary Enabled
-dotenvSafe.config({ allowEmptyValues: true });
+dotenv.config();
 connectDB();
 
 const app = express();
