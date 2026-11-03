@@ -26,6 +26,9 @@ api.interceptors.response.use(
 
 export const getAttachmentUrl = (photoPath) => {
   if (!photoPath) return '';
+  if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+    return photoPath;
+  }
   const baseUrl = api.defaults.baseURL || 'http://localhost:4009/v1/api';
   const serverUrl = baseUrl.replace('/v1/api', '');
   const cleanPath = photoPath.startsWith('/') ? photoPath : `/${photoPath}`;

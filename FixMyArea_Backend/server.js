@@ -14,7 +14,8 @@ import swaggerSpec from './config/swagger.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenvSafe.config();
+// FixMyArea Server v2.0 - Cloudinary Enabled
+dotenvSafe.config({ allowEmptyValues: true });
 connectDB();
 
 const app = express();

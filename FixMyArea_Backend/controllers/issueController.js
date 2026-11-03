@@ -1,6 +1,8 @@
 import { validationResult } from 'express-validator';
 import mongoose from 'mongoose';
+import fs from 'fs';
 import Issue from '../models/Issue.js';
+import cloudinary from '../config/cloudinary.js';
 
 // CREATE ISSUE
 export const createIssue = async (req, res) => {
@@ -15,6 +17,33 @@ export const createIssue = async (req, res) => {
   const { issueTitle, issueDescription, category, priority, address, landmark } = req.body;
   const userId = req.user.userId;
 
+  let photo = null;
+  if (req.file) {
+    if (
+      process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET
+    ) {
+      try {
+        const uploadRes = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'fixmyarea/issues',
+          resource_type: 'image',
+        });
+        photo = uploadRes.secure_url;
+        // Clean up temporary local file after successful Cloudinary upload
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (_) {}
+      } catch (cloudErr) {
+        console.error('Cloudinary upload error:', cloudErr);
+        // Fallback to local storage if Cloudinary upload fails
+        photo = `/uploads/issues/${req.file.filename}`;
+      }
+    } else {
+      photo = `/uploads/issues/${req.file.filename}`;
+    }
+  }
+
   try {
     const issue = await Issue.create({
       issueTitle,
@@ -24,7 +53,7 @@ export const createIssue = async (req, res) => {
       address,
       landmark,
       userId,
-      photo: req.file ? `/uploads/issues/${req.file.filename}` : null,
+      photo,
     });
     res.status(201).json({ message: 'Issue reported successfully', issue });
   } catch (err) {
