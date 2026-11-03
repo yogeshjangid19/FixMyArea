@@ -280,7 +280,8 @@ export default function Footer() {
             <span>© {new Date().getFullYear()} FixMyArea. Open Civic Platform.</span>
             <span className="hidden sm:inline text-white/10">•</span>
             <span className="flex items-center gap-1 text-slate-400">
-              Built with <Heart size={12} className="text-red-400 fill-red-400" /> for Smart Cities
+              Built with <Heart size={12} className="text-red-400 fill-red-400" /> for Sodha Bhai
+              
             </span>
           </div>
 
